@@ -654,7 +654,7 @@ const createQuickReply = (lang = "th") => {
         action: {
           type: "uri",
           label: lang === "th" ? "สร้างแผนการเดินทาง" : "Create Travel Plan",
-          uri: "https://tripster-plans.netlify.app/"
+          uri: "https://tripster-bot.onrender.com/"
         }
       },
     ],
