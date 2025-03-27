@@ -1,0 +1,25 @@
+{
+  "name": "line-travel-bot",
+  "version": "1.0.0",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@google-cloud/translate": "^8.5.1",
+    "@line/bot-sdk": "^9.7.1",
+    "axios": "^1.8.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "firebase": "^11.4.0",
+    "google-auth-library": "^9.15.1",
+    "node-cache": "^5.1.2",
+    "sanitize-html": "^2.14.0"
+  }
+}
