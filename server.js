@@ -654,7 +654,7 @@ const createQuickReply = (lang = "th") => {
         action: {
           type: "uri",
           label: lang === "th" ? "สร้างแผนการเดินทาง" : "Create Travel Plan",
-          uri: "https://tripster-bot.onrender.com/"
+          uri: "https://liff.line.me/2006885303-nA7agEQN"
         }
       },
     ],
