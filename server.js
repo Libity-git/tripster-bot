@@ -235,13 +235,11 @@ const getPlaceDetails = async (placeId) => {
   }
 };
 
-// ✅ ปรับปรุงฟังก์ชัน searchPlaceWithCustomSearch
 const searchPlaceWithCustomSearch = async (placeName, context = "สถานที่ท่องเที่ยว") => {
   try {
-    // ปรับคำค้นหาให้เหมาะสมกับบริบท
     let query = `${placeName} ${context} ภาคเหนือ ประเทศไทย`;
     if (context === "โรงแรม") {
-      query = `${placeName} โรงแรม รีวิว ประเทศไทย`; // เน้นคำว่า "โรงแรม" และ "รีวิว"
+      query = `${placeName} โรงแรม รีวิว ประเทศไทย`;
     }
 
     console.log(`🔍 Custom Search Query: ${query}`);
@@ -250,9 +248,9 @@ const searchPlaceWithCustomSearch = async (placeName, context = "สถานท
         key: GOOGLE_CUSTOM_SEARCH_API_KEY,
         cx: GOOGLE_CUSTOM_SEARCH_ENGINE_ID,
         q: query,
-        num: 3, // จำกัดผลลัพธ์ 3 รายการ
-        lr: "lang_th", // จำกัดภาษาเป็นไทย
-        cr: "countryTH", // จำกัดผลลัพธ์ในประเทศไทย
+        num: 3,
+        lr: "lang_th",
+        cr: "countryTH",
       },
     });
 
@@ -261,7 +259,7 @@ const searchPlaceWithCustomSearch = async (placeName, context = "สถานท
         .filter(item => {
           const text = `${item.title} ${item.snippet}`.toLowerCase();
           return text.includes(placeName.toLowerCase()) && (context === "โรงแรม" ? text.includes("โรงแรม") : true);
-        }) // กรองผลลัพธ์ที่เกี่ยวข้อง
+        })
         .map(item => ({
           title: item.title,
           link: item.link,
@@ -279,55 +277,55 @@ const searchPlaceWithCustomSearch = async (placeName, context = "สถานท
 };
 
 const getHotelsNearPlace = async (placeName) => {
-    let searchLocation = await getLocationFromGooglePlaces(placeName);
-  
+  let searchLocation = await getLocationFromGooglePlaces(placeName);
+
+  if (!searchLocation) {
+    console.warn(`⚠️ No location found for ${placeName}, using default: Chiang Mai, Thailand`);
+    searchLocation = await getLocationFromGooglePlaces("Chiang Mai, Thailand");
     if (!searchLocation) {
-      console.warn(`⚠️ No location found for ${placeName}, using default: Chiang Mai, Thailand`);
-      searchLocation = await getLocationFromGooglePlaces("Chiang Mai, Thailand");
-      if (!searchLocation) {
-        console.warn(`⚠️ No location found for Chiang Mai, using Bangkok, Thailand`);
-        searchLocation = await getLocationFromGooglePlaces("Bangkok, Thailand");
-      }
+      console.warn(`⚠️ No location found for Chiang Mai, using Bangkok, Thailand`);
+      searchLocation = await getLocationFromGooglePlaces("Bangkok, Thailand");
     }
-  
-    if (!searchLocation) {
-      console.warn(`⚠️ Using hard-coded coordinates for Chiang Mai as fallback`);
-      searchLocation = {
-        latitude: 18.7883,
-        longitude: 98.9857,
-      };
-    }
-  
-    try {
-      const response = await axios.get("https://maps.googleapis.com/maps/api/place/nearbysearch/json", {
-        params: {
-          location: `${searchLocation.latitude},${searchLocation.longitude}`,
-          radius: 20000,
-          type: "lodging",
-          key: GOOGLE_PLACES_API_KEY,
-        },
-      });
-  
-      const hotels = response.data.results
-        .filter(hotel => hotel.geometry)
-        .sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.user_ratings_total || 0) - (a.user_ratings_total || 0))
-        .slice(0, 3)
-        .map(hotel => ({
-          name: hotel.name,
-          address: hotel.vicinity || "ไม่มีข้อมูลที่อยู่",
-          photoReference: hotel.photos && hotel.photos[0] ? hotel.photos[0].photo_reference : null,
-          latitude: hotel.geometry?.location?.lat || null,
-          longitude: hotel.geometry?.location?.lng || null,
-          rating: hotel.rating || "N/A",
-          userRatingsTotal: hotel.user_ratings_total || 0,
-        }));
-      console.log(`✅ Found ${hotels.length} hotels near ${placeName}:`, hotels.map(h => h.name));
-      return hotels;
-    } catch (error) {
-      console.error("❌ Nearby Search API error:", error.response?.data?.error_message || error.message);
-      return [];
-    }
-  };
+  }
+
+  if (!searchLocation) {
+    console.warn(`⚠️ Using hard-coded coordinates for Chiang Mai as fallback`);
+    searchLocation = {
+      latitude: 18.7883,
+      longitude: 98.9857,
+    };
+  }
+
+  try {
+    const response = await axios.get("https://maps.googleapis.com/maps/api/place/nearbysearch/json", {
+      params: {
+        location: `${searchLocation.latitude},${searchLocation.longitude}`,
+        radius: 20000,
+        type: "lodging",
+        key: GOOGLE_PLACES_API_KEY,
+      },
+    });
+
+    const hotels = response.data.results
+      .filter(hotel => hotel.geometry)
+      .sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.user_ratings_total || 0) - (a.user_ratings_total || 0))
+      .slice(0, 3)
+      .map(hotel => ({
+        name: hotel.name,
+        address: hotel.vicinity || "ไม่มีข้อมูลที่อยู่",
+        photoReference: hotel.photos && hotel.photos[0] ? hotel.photos[0].photo_reference : null,
+        latitude: hotel.geometry?.location?.lat || null,
+        longitude: hotel.geometry?.location?.lng || null,
+        rating: hotel.rating || "N/A",
+        userRatingsTotal: hotel.user_ratings_total || 0,
+      }));
+    console.log(`✅ Found ${hotels.length} hotels near ${placeName}:`, hotels.map(h => h.name));
+    return hotels;
+  } catch (error) {
+    console.error("❌ Nearby Search API error:", error.response?.data?.error_message || error.message);
+    return [];
+  }
+};
 
 const getPhotoUrl = (photoReference) => {
   if (!photoReference) return "https://example.com/placeholder.jpg";
@@ -450,6 +448,13 @@ const pushToLine = async (userId, message) => {
       }
     }
 
+    // จำกัดจำนวนข้อความไม่เกิน 5 (LINE API limit)
+    if (messages.length > 5) {
+      console.warn("⚠️ Messages exceed LINE limit, truncating to 5");
+      messages.length = 5; // ตัดให้เหลือ 5 ข้อความ
+    }
+
+    console.log("📤 Pushing to LINE:", JSON.stringify(messages, null, 2));
     await axios.post(
       "https://api.line.me/v2/bot/message/push",
       {
@@ -460,9 +465,24 @@ const pushToLine = async (userId, message) => {
     );
     console.log(`✅ Pushed message to LINE successfully for user: ${userId}`);
   } catch (error) {
-    console.error("❌ LINE Push API error:", error.response?.data?.error_message || error.message);
+    console.error("❌ LINE Push API detailed error:", error.response?.data || error.message);
     throw new Error("Failed to push message to LINE: " + (error.response?.data?.message || error.message));
   }
+};
+
+const validateFlexMessage = (msg) => {
+  if (msg.type === "flex") {
+    if (!msg.contents || !["bubble", "carousel"].includes(msg.contents.type)) {
+      console.error("❌ Invalid flex message:", JSON.stringify(msg));
+      return false;
+    }
+    // ตรวจสอบขนาด (LINE จำกัด 1MB)
+    if (JSON.stringify(msg).length > 1000000) {
+      console.error("❌ Flex message too large:", msg);
+      return false;
+    }
+  }
+  return true;
 };
 
 const createPlaceFlexMessage = (placeData) => {
@@ -654,8 +674,8 @@ const createQuickReply = (lang = "th") => {
         action: {
           type: "uri",
           label: lang === "th" ? "สร้างแผนการเดินทาง" : "Create Travel Plan",
-          uri: "https://liff.line.me/2006885303-nA7agEQN"
-        }
+          uri: "https://tripster-plans.netlify.app/",
+        },
       },
     ],
   };
@@ -793,7 +813,6 @@ const getAIResponseWithMedia = async (userId, userMessage, replyToken) => {
     }];
   }
 
-  // ✅ ปรับส่วน "แนะนำโรงแรม" ให้ใช้ context "โรงแรม"
   if (typeof userMessage === "string" && (userMessage.startsWith("แนะนำโรงแรม") || userMessage.includes("ขอที่พัก"))) {
     const placeName = userMessage.replace(/แนะนำโรงแรม|ขอที่พัก/, "").trim() || "ภาคเหนือ";
     const northernProvinces = ["เชียงใหม่", "เชียงราย", "ลำปาง", "ลำพูน", "แม่ฮ่องสอน", "น่าน", "พะเยา", "แพร่", "อุตรดิตถ์"];
@@ -900,13 +919,13 @@ const getAIResponseWithMedia = async (userId, userMessage, replyToken) => {
       altText: "ติดต่อหน่วยงานที่เกี่ยวข้อง (กลุ่ม 1)",
       baseSize: {
         width: 1040,
-        height: 1040
+        height: 1040,
       },
       actions: [
         { type: "uri", linkUri: "tel:1669", area: { x: 0, y: 300, width: 1040, height: 350 } },
         { type: "uri", linkUri: "tel:191", area: { x: 0, y: 540, width: 1040, height: 340 } },
-        { type: "uri", linkUri: "tel:1155", area: { x: 0, y: 778, width: 1040, height: 346 } }
-      ]
+        { type: "uri", linkUri: "tel:1155", area: { x: 0, y: 778, width: 1040, height: 346 } },
+      ],
     };
 
     const imageMap2 = {
@@ -915,13 +934,13 @@ const getAIResponseWithMedia = async (userId, userMessage, replyToken) => {
       altText: "ติดต่อหน่วยงานที่เกี่ยวข้อง (กลุ่ม 2)",
       baseSize: {
         width: 1040,
-        height: 1040
+        height: 1040,
       },
       actions: [
         { type: "uri", linkUri: "tel:1196", area: { x: 0, y: 300, width: 1040, height: 347 } },
         { type: "uri", linkUri: "tel:1860", area: { x: 0, y: 540, width: 1040, height: 347 } },
-        { type: "uri", linkUri: "tel:+6622831500", area: { x: 0, y: 778, width: 1040, height: 346 } }
-      ]
+        { type: "uri", linkUri: "tel:+6622831500", area: { x: 0, y: 778, width: 1040, height: 346 } },
+      ],
     };
 
     const followUp = await translateText("ต้องการดูข้อมูลเพิ่มเติมหรือไม่? ลองเลือกคำสั่งด้านล่างเลยครับ!", detectedLang);
@@ -1011,11 +1030,19 @@ app.post("/submit-travel-plan", async (req, res) => {
   }
 
   try {
+    // คำนวณงบประมาณต่อคน (สมมติว่า "เพื่อน" = 2 คน)
+    const budgetPerPerson = budget / (travelWith === "เพื่อน" ? 2 : 1);
+    let additionalPrompt = "";
+    if (budgetPerPerson < 1000) {
+      console.warn(`⚠️ Budget too low: ${budget} THB for ${travelWith}`);
+      additionalPrompt = "\nงบประมาณอาจไม่เพียงพอ แนะนำสถานที่ราคาประหยัดเพิ่มเติม";
+    }
+
     const aiPrompt = `
       ช่วยวางแผนการท่องเที่ยวในประเทศไทยโดยอิงจากข้อมูลต่อไปนี้:
       - จุดเริ่มต้น: ${startLocation}
       - ปลายทาง: ${destination}
-      - งบประมาณ: ${budget} บาท
+      - งบประมาณ: ${budget} บาท (สำหรับ ${travelWith === "เพื่อน" ? "2 คน" : "1 คน"})
       - ความชอบ: ${preference}
       - เดินทางกับ: ${travelWith}
       - วิธีการเดินทาง: ${transport}
@@ -1025,6 +1052,7 @@ app.post("/submit-travel-plan", async (req, res) => {
       แนะนำโรงแรม 1-2 แห่งใกล้สถานที่ท่องเที่ยวหลัก โดยพิจารณาความนิยม (เรตติ้ง) และราคาที่เหมาะสมกับ ${budget} บาท
       หากเดินทางจาก ${startLocation} ไป ${destination} ด้วย ${transport} ควรใช้เส้นทางไหน หรือมีคำแนะนำอะไรเพิ่มเติม
       หากไม่มีข้อมูลตรงตามความชอบ ให้แนะนำสถานที่ยอดนิยมใกล้เคียงใน ${destination}
+      ${additionalPrompt}
     `;
 
     console.log(`📝 Sending prompt to AI for user ${userId}: ${aiPrompt}`);
@@ -1034,8 +1062,12 @@ app.post("/submit-travel-plan", async (req, res) => {
 
     const locations = aiResponse.split("\n").filter(line => line.trim());
     const placeNames = locations
-      .filter(line => line.match(/สถานที่ท่องเที่ยว/) || line.match(/ที่เที่ยว/))
-      .map(line => line.replace(/สถานที่ท่องเที่ยว: |ที่เที่ยว: /, "").split(" - ")[0].trim());
+      .filter(line => line.match(/สถานที่ท่องเที่ยว|ที่เที่ยว/) && line.includes(":"))
+      .map(line => {
+        const match = line.match(/(?:สถานที่ท่องเที่ยว|ที่เที่ยว):\s*([^:]+)(?=\s*-)/);
+        return match ? match[1].trim() : null;
+      })
+      .filter(name => name);
     const hotelNames = locations
       .filter(line => line.match(/โรงแรม/))
       .map(line => line.replace(/โรงแรม: /, "").split(" - ")[0].trim());
@@ -1047,14 +1079,21 @@ app.post("/submit-travel-plan", async (req, res) => {
 
     const messages = [];
     messages.push({ type: "text", text: `🗺️ แผนการท่องเที่ยวจาก ${startLocation} ถึง ${destination}:\n${aiResponse}` });
-    if (placeCarousel.type === "flex") messages.push(placeCarousel);
-    if (hotelCarousel.type === "flex") messages.push(hotelCarousel);
+    if (placeCarousel.type === "flex" && validateFlexMessage(placeCarousel)) messages.push(placeCarousel);
+    if (hotelCarousel.type === "flex" && validateFlexMessage(hotelCarousel)) messages.push(hotelCarousel);
     messages.push({
       type: "text",
       text: "ต้องการดูข้อมูลเพิ่มเติมหรือไม่? ลองเลือกคำสั่งด้านล่างเลยครับ!",
       quickReply: createQuickReply("th"),
     });
 
+    // จำกัดจำนวนข้อความไม่เกิน 5
+    if (messages.length > 5) {
+      console.warn("⚠️ Messages exceed LINE limit, truncating to 5");
+      messages.length = 5;
+    }
+
+    console.log("📤 Pushing travel plan to LINE:", JSON.stringify(messages, null, 2));
     await pushToLine(userId, messages);
     console.log(`✅ Successfully sent travel plan to LINE for user: ${userId}`);
 
@@ -1171,5 +1210,6 @@ app.post("/webhook", async (req, res) => {
   res.status(200).send("Webhook received!");
 });
 
-const PORT = process.env.PORT || 5000;
+// เปลี่ยน PORT เป็น 10000 สำหรับ Render หรือกำหนดผ่าน env vars
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`🚀 Tripster พร้อมให้ข้อมูลการท่องเที่ยวที่พอร์ต ${PORT}`));
