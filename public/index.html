@@ -290,7 +290,62 @@
     <h2>วางแผนการเดินทาง</h2>
     <form id="travel-form">
       <input type="hidden" name="userId" id="userId" value="">
-      <!-- ฟิลด์ทั้งหมดเหมือนเดิม -->
+      <div class="form-group">
+        <label for="startLocation">จุดเริ่มต้น:</label>
+        
+        <input type="text" id="startLocation" name="startLocation" placeholder="เช่น กรุงเทพมหานคร, เชียงใหม่" required aria-label="จุดเริ่มต้นของการเดินทาง">
+      </div>
+      <div class="form-group">
+        <label for="destination">ปลายทาง:</label>
+        
+        <input type="text" id="destination" name="destination" placeholder="เช่น เชียงราย, เชียงใหม่" required aria-label="ปลายทางของการเดินทาง">
+      </div>
+      <div class="form-group">
+        <label for="arrivalDate">วันที่เดินทางไป:</label>
+        
+        <input type="date" id="arrivalDate" name="arrivalDate" required aria-label="วันที่เดินทางไป">
+      </div>
+      <div class="form-group">
+        <label for="returnDate">วันที่เดินทางกลับ:</label>
+        
+        <input type="date" id="returnDate" name="returnDate" required aria-label="วันที่เดินทางกลับ">
+      </div>
+      <div class="form-group">
+        <label for="budget">งบประมาณ (บาท):</label>
+        
+        <input type="number" id="budget" name="budget" placeholder="เช่น 2000" required aria-label="งบประมาณสำหรับการเดินทาง (บาท)">
+      </div>
+      <div class="form-group">
+        <label>ความชอบ (เลือกได้มากกว่า 1):</label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" name="preference" value="ธรรมชาติ"> ธรรมชาติ</label>
+          <label><input type="checkbox" name="preference" value="วัฒนธรรม"> วัฒนธรรม</label>
+          <label><input type="checkbox" name="preference" value="ผจญภัย"> ผจญภัย</label>
+          <label><input type="checkbox" name="preference" value="ช้อปปิ้ง"> ช้อปปิ้ง</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="travelWith">เดินทางกับใคร:</label>
+        
+        <select id="travelWith" name="travelWith" required aria-label="เลือกผู้ที่เดินทางด้วย">
+          <option value="" disabled selected>เลือกผู้ที่เดินทางด้วย</option>
+          <option value="ครอบครัว">ครอบครัว</option>
+          <option value="เพื่อน">เพื่อน</option>
+          <option value="คู่รัก">คู่รัก</option>
+          <option value="เดี่ยว">คนเดียว</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="transport">วิธีการเดินทาง:</label>
+        
+        <select id="transport" name="transport" required aria-label="เลือกวิธีการเดินทาง">
+          <option value="" disabled selected>เลือกวิธีการเดินทาง</option>
+          <option value="รถยนต์">รถยนต์</option>
+          <option value="รถไฟ">รถไฟ</option>
+          <option value="เครื่องบิน">เครื่องบิน</option>
+          <option value="รถบัส">รถบัส</option>
+        </select>
+      </div>
       <button type="submit">ส่งข้อมูล</button>
     </form>
   </div>
