@@ -447,6 +447,7 @@ const pushToLine = async (userId, message) => {
         throw new Error("Invalid text message: Text is missing or not a string");
       }
     }
+    console.log("📦 LINE PAYLOAD:", JSON.stringify(messages, null, 2));
 
     // จำกัดจำนวนข้อความไม่เกิน 5 (LINE API limit)
     if (messages.length > 5) {
@@ -674,7 +675,7 @@ const createQuickReply = (lang = "th") => {
         action: {
           type: "uri",
           label: lang === "th" ? "สร้างแผนการเดินทาง" : "Create Travel Plan",
-          uri: "https://tripster-plans.netlify.app/",
+          uri: "https://liff.line.me/2006885303-nA7agEQN",
         },
       },
     ],
