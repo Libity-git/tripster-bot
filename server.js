@@ -1031,7 +1031,6 @@ app.post("/submit-travel-plan", async (req, res) => {
   }
 
   try {
-    // คำนวณงบประมาณต่อคน (สมมติว่า "เพื่อน" = 2 คน)
     const budgetPerPerson = budget / (travelWith === "เพื่อน" ? 2 : 1);
     let additionalPrompt = "";
     if (budgetPerPerson < 1000) {
@@ -1057,50 +1056,25 @@ app.post("/submit-travel-plan", async (req, res) => {
     `;
 
     console.log(`📝 Sending prompt to AI for user ${userId}: ${aiPrompt}`);
-
     const aiResponse = await getAIResponse(userId, aiPrompt);
     console.log(`🤖 AI Response: ${aiResponse}`);
 
-    const locations = aiResponse.split("\n").filter(line => line.trim());
-    const placeNames = locations
-      .filter(line => line.match(/สถานที่ท่องเที่ยว|ที่เที่ยว/) && line.includes(":"))
-      .map(line => {
-        const match = line.match(/(?:สถานที่ท่องเที่ยว|ที่เที่ยว):\s*([^:]+)(?=\s*-)/);
-        return match ? match[1].trim() : null;
-      })
-      .filter(name => name);
-    const hotelNames = locations
-      .filter(line => line.match(/โรงแรม/))
-      .map(line => line.replace(/โรงแรม: /, "").split(" - ")[0].trim());
+    // สร้างข้อความ text เท่านั้น
+    const messages = [
+      {
+        type: "text",
+        text: `🗺️ แผนการท่องเที่ยวจาก ${startLocation} ถึง ${destination}:\n${aiResponse}\n\nต้องการดูข้อมูลเพิ่มเติมหรือไม่? พิมพ์ "แนะนำที่เที่ยว" หรือ "แนะนำโรงแรม" ได้เลยครับ!`,
+      }
+    ];
 
-    const placeCarousel = await createRecommendationCarousel(placeNames.slice(0, 3));
-    const hotelCarousel = await createHotelRecommendationCarousel(
-      (await getHotelsNearPlace(destination)).slice(0, 2)
-    );
-
-    const messages = [];
-    messages.push({ type: "text", text: `🗺️ แผนการท่องเที่ยวจาก ${startLocation} ถึง ${destination}:\n${aiResponse}` });
-    if (placeCarousel.type === "flex" && validateFlexMessage(placeCarousel)) messages.push(placeCarousel);
-    if (hotelCarousel.type === "flex" && validateFlexMessage(hotelCarousel)) messages.push(hotelCarousel);
-    messages.push({
-      type: "text",
-      text: "ต้องการดูข้อมูลเพิ่มเติมหรือไม่? ลองเลือกคำสั่งด้านล่างเลยครับ!",
-      quickReply: createQuickReply("th"),
-    });
-
-    // จำกัดจำนวนข้อความไม่เกิน 5
-    if (messages.length > 5) {
-      console.warn("⚠️ Messages exceed LINE limit, truncating to 5");
-      messages.length = 5;
-    }
-
-    console.log("📤 Pushing travel plan to LINE:", JSON.stringify(messages, null, 2));
+    console.log("📤 Pushing to LINE with payload:", JSON.stringify(messages, null, 2));
     await pushToLine(userId, messages);
     console.log(`✅ Successfully sent travel plan to LINE for user: ${userId}`);
 
     res.status(200).send("Processed successfully");
   } catch (error) {
     console.error("❌ Error processing travel plan:", error.message);
+    console.error("❌ Detailed error:", error.response?.data || error);
     res.status(500).send("Error processing data");
   }
 });
