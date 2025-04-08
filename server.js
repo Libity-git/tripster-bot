@@ -441,33 +441,31 @@ const sendToLine = async (replyToken, message) => {
 const pushToLine = async (userId, message) => {
   try {
     const messages = Array.isArray(message) ? message : [message];
-    for (const msg of messages) {
-      if (!msg.type) throw new Error("Invalid message structure: Missing type");
-      if (msg.type === "text" && (!msg.text || typeof msg.text !== "string")) {
-        throw new Error("Invalid text message: Text is missing or not a string");
-      }
-    }
-    console.log("📦 LINE PAYLOAD:", JSON.stringify(messages, null, 2));
+    console.log(`📤 Pushing to LINE for user ${userId} with payload:`, JSON.stringify(messages, null, 2));
 
-    // จำกัดจำนวนข้อความไม่เกิน 5 (LINE API limit)
-    if (messages.length > 5) {
-      console.warn("⚠️ Messages exceed LINE limit, truncating to 5");
-      messages.length = 5; // ตัดให้เหลือ 5 ข้อความ
-    }
-
-    console.log("📤 Pushing to LINE:", JSON.stringify(messages, null, 2));
-    await axios.post(
+    const response = await axios.post(
       "https://api.line.me/v2/bot/message/push",
       {
         to: userId,
         messages: messages,
       },
-      { headers: { Authorization: `Bearer ${LINE_ACCESS_TOKEN}`, "Content-Type": "application/json" } }
+      {
+        headers: {
+          "Authorization": `Bearer ${LINE_ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
     );
-    console.log(`✅ Pushed message to LINE successfully for user: ${userId}`);
+    console.log(`✅ Successfully pushed to LINE for user ${userId}:`, response.data);
   } catch (error) {
-    console.error("❌ LINE Push API detailed error:", error.response?.data || error.message);
-    throw new Error("Failed to push message to LINE: " + (error.response?.data?.message || error.message));
+    console.error("❌ LINE Push API failed:");
+    if (error.response) {
+      console.error("Status:", error.response.status);
+      console.error("Response data:", error.response.data);
+    } else {
+      console.error("Error message:", error.message);
+    }
+    throw new Error(`Failed to push message to LINE: ${error.response?.data?.message || error.message}`);
   }
 };
 
